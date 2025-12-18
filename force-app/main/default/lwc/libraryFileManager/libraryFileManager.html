@@ -1,0 +1,445 @@
+<template>
+    <div class="slds-card slds-card_boundary">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <lightning-icon icon-name="standard:folder" size="medium"></lightning-icon>
+                </div>
+                <div class="slds-media__body">
+                    <h1 class="slds-card__header-title slds-text-heading_medium">
+                        Library File Manager
+                    </h1>
+                </div>
+            </header>
+        </div>
+
+        <div class="slds-card__body slds-p-horizontal_none slds-p-vertical_none">
+            <div class={mainLayoutClass} style="min-height: 600px;">
+                
+                <!-- Left Panel - Library Tree -->
+                <div class={treeColumnClass}>
+                    <div class="slds-card slds-card_boundary slds-m-around_x-small">
+                        <div class="slds-card__header slds-theme_default slds-grid slds-grid_align-spread slds-align-middle">
+                            <h2 class="slds-card__header-title slds-text-heading_small">
+                                <lightning-icon icon-name="standard:folder" size="small" variant="neutral" class="slds-m-right_x-small"></lightning-icon>
+                                Libraries
+                            </h2>
+                            
+                            <lightning-button-icon 
+                                icon-name="utility:refresh" 
+                                variant="border-filled" 
+                                alternative-text="Refresh" 
+                                title="Refresh Libraries"
+                                onclick={handleRefresh}>
+                            </lightning-button-icon>
+                        </div>
+                        <div class="slds-card__body slds-card__body_inner">
+                            <div class="slds-scrollable_y library-tree-container">
+                                <template if:true={isLoadingLibraries}>
+                                    <div class="slds-align_absolute-center slds-p-around_large">
+                                        <lightning-spinner alternative-text="Loading libraries..." size="medium"></lightning-spinner>
+                                    </div>
+                                </template>
+                                <template if:false={isLoadingLibraries}>
+                                    <lightning-tree 
+                                        items={libraries} 
+                                        onselect={handleTreeSelect}
+                                        header="Libraries"
+                                        class="slds-tree_container">
+                                    </lightning-tree>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - File List -->
+                <div class={fileColumnClass}>
+                    <div class="slds-card slds-card_boundary slds-m-around_x-small">
+                        
+                        <div class="slds-card__header current-location-branded">
+                            <div class="slds-media slds-media_center">
+                                <div class="slds-media__figure">
+                                    <lightning-icon icon-name="utility:location" size="small" variant="inverse"></lightning-icon>
+                                </div>
+                                <div class="slds-media__body">
+                                    <h2 class="slds-text-heading_small current-location-title">
+                                        <template if:true={currentLocationDisplayName}>
+                                            {currentLocationDisplayName}
+                                        </template>
+                                        <template if:false={currentLocationDisplayName}>
+                                            Select a library or folder
+                                        </template>
+                                    </h2>
+                                    <p class="slds-text-body_small current-location-subtitle">
+                                        <template if:true={currentFiles.length}>
+                                            {currentFiles.length} files
+                                        </template>
+                                        <template if:false={currentFiles.length}>
+                                            No files found
+                                        </template>
+                                        <template if:true={breadcrumbs.length}>
+                                            • {breadcrumbPath}
+                                        </template>
+                                    </p>
+                                </div>
+                            </div>
+                            <template if:true={showNavigationBreadcrumbs}>
+                                <nav role="navigation" aria-label="Breadcrumbs" class="slds-p-horizontal_medium slds-p-bottom_small">
+                                    <p class="slds-text-body_small slds-m-bottom_x-small"><strong>Navigate:</strong></p>
+                                    <ol class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                        <template for:each={breadcrumbs} for:item="breadcrumb">
+                                            <li key={breadcrumb.id} class="slds-breadcrumb__item">
+                                                <template if:false={breadcrumb.isLast}>
+                                                    <a href="javascript:void(0);" 
+                                                    class="slds-breadcrumb__action" 
+                                                    data-id={breadcrumb.id}
+                                                    onclick={handleBreadcrumbClick}>
+                                                    {breadcrumb.label}
+                                                    </a>
+                                                </template>
+                                                <template if:true={breadcrumb.isLast}>
+                                                    <span class="slds-breadcrumb__action slds-text-title_caps">{breadcrumb.label}</span>
+                                                </template>
+                                            </li>
+                                        </template>
+                                    </ol>
+                                </nav>
+                            </template>
+                        </div>
+
+                        <div class="slds-card__body slds-card__body_inner slds-p-around_small">
+                            <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                <div class="slds-col">
+                                </div>
+                                <div class="slds-col slds-no-flex">
+                                    <lightning-button-group>
+                                        <lightning-button 
+                                            variant="brand" 
+                                            label="Create Folder" 
+                                            onclick={handleCreateFolder}
+                                            icon-name="utility:add">
+                                        </lightning-button>
+                                        <lightning-button 
+                                            variant="neutral" 
+                                            label="Move Files" 
+                                            onclick={handleMoveFiles}
+                                            disabled={noSelectedFiles}
+                                            icon-name="utility:move">
+                                        </lightning-button>
+                                        <lightning-button 
+                                            variant="destructive" 
+                                            label="Delete Files" 
+                                            onclick={handleDeleteFiles}
+                                            disabled={noSelectedFiles}
+                                            icon-name="utility:delete">
+                                        </lightning-button>
+                                    </lightning-button-group>
+                                </div>
+                            </div>
+
+                            <template if:true={hasSelectedFiles}>
+                                <div class="slds-notify slds-notify_alert slds-theme_info slds-m-bottom_x-small" role="alert">
+                                    <span class="slds-assistive-text">Info</span>
+                                    <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
+                                        <lightning-icon icon-name="utility:info" size="x-small" variant="inverse"></lightning-icon>
+                                    </span>
+                                    <h2 class="slds-text-body_small">
+                                        {selectedFileCount} file{selectedFileCountPlural} selected
+                                    </h2>
+                                </div>
+                            </template>
+
+                            <div class="slds-scrollable_y file-table-container">
+                                <template if:true={isLoadingFiles}>
+                                    <div class="slds-align_absolute-center slds-p-around_large">
+                                        <lightning-spinner alternative-text="Loading files..." size="medium"></lightning-spinner>
+                                    </div>
+                                </template>
+                                
+                                <template if:false={isLoadingFiles}>
+                                    <template if:true={currentFiles}>
+                                        <lightning-datatable
+                                            key-field="id"
+                                            data={currentFiles}
+                                            columns={fileColumns}
+                                            onrowselection={handleFileSelection}
+                                            max-row-selection="1000"
+                                            show-row-number-column="false"
+                                            resize-step="10"
+                                            column-widths-mode="auto"
+                                            class="slds-table_header-fixed_container">
+                                        </lightning-datatable>
+                                    </template>
+                                    
+                                    <template if:false={currentFiles.length}>
+                                        <div class="slds-illustration slds-illustration_small slds-p-around_large">
+                                            <div class="slds-text-longform">
+                                                <h3 class="slds-text-heading_medium">No files found</h3>
+                                                <p class="slds-text-body_regular">
+                                                    This folder is empty. Select a library or folder from the tree to view files.
+                                                </p>
+                                            </div>
+                                            <div class="slds-illustration__figure">
+                                                <lightning-icon icon-name="utility:file" size="large" variant="neutral"></lightning-icon>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Move Panel -->
+                <template if:true={showMovePanel}>
+                    <div class={movePanelClass}>
+                        <div class="slds-card slds-card_boundary move-panel-container">
+                            <div class="slds-card__header move-panel-header">
+                                <div class="slds-grid slds-grid_align-spread">
+                                    <h3 class="slds-card__header-title slds-text-heading_small move-panel-title">
+                                        <lightning-icon icon-name="utility:move" size="small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                                        Moving {selectedFileCount} file{selectedFileCountPlural}
+                                    </h3>
+                                    <lightning-button-icon 
+                                        icon-name="utility:close" 
+                                        variant="bare-inverse" 
+                                        onclick={closeMovePanel}
+                                        alternative-text="Close move panel"
+                                        class="move-panel-close">
+                                    </lightning-button-icon>
+                                </div>
+                            </div>
+
+                            <div class="slds-card__body slds-p-around_small">
+                                
+                                <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_small">
+                                    <div class="slds-media slds-media_small">
+                                        <div class="slds-media__figure">
+                                            <lightning-icon icon-name="utility:right" size="x-small" variant="neutral"></lightning-icon>
+                                        </div>
+                                        <div class="slds-media__body">
+                                            <p class="slds-text-body_small"><strong>From:</strong> {currentLocationName}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-m-bottom_small">
+                                    <p class="slds-text-body_small slds-m-bottom_xx-small"><strong>Files to move:</strong></p>
+                                    <div class="slds-scrollable_y files-to-move-list slds-box slds-theme_shade">
+                                        <template for:each={selectedFiles} for:item="file">
+                                            <div key={file.id} class="slds-media slds-media_small slds-p-vertical_xx-small">
+                                                <div class="slds-media__figure">
+                                                    <lightning-icon icon-name={file.iconName} size="x-small" variant="neutral"></lightning-icon>
+                                                </div>
+                                                <div class="slds-media__body">
+                                                    <p class="slds-text-body_small slds-truncate" title={file.title}>{file.title}</p>
+                                                    <p class="slds-text-color_weak slds-text-body_x-small">{file.formattedSize}</p>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-section slds-is-open">
+                                    <h3 class="slds-section__title slds-theme_shade">
+                                        <span class="slds-truncate slds-p-horizontal_small" title="Choose destination">Choose destination</span>
+                                    </h3>
+                                    <div class="slds-section__content slds-p-around_small">
+                                        
+                                        <template if:true={selectedDestinationName}>
+                                            <div class="slds-m-bottom_xx-small">
+                                                <span class="slds-badge slds-badge_success">
+                                                    <lightning-icon icon-name="utility:check" size="xx-small" class="slds-m-right_xx-small"></lightning-icon>
+                                                    {selectedDestinationName}
+                                                </span>
+                                            </div>
+                                        </template>
+                                        
+                                        <div class="slds-m-bottom_xx-small">
+                                            <lightning-input
+                                                type="search"
+                                                label="Search destinations"
+                                                variant="label-stacked"
+                                                placeholder="Search libraries and folders..."
+                                                value={searchTerm}
+                                                onchange={handleSearchChange}>
+                                            </lightning-input>
+                                        </div>
+                                        
+                                        <div class="slds-scrollable_y destination-tree-container slds-border_around slds-p-around_xx-small">
+                                            <lightning-tree 
+                                                items={filteredDestinations} 
+                                                selected-item={selectedDestinationId}
+                                                onselect={handleDestinationSelect}
+                                                header="">
+                                            </lightning-tree>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <footer class="slds-card__footer slds-p-around_small">
+                                <lightning-button 
+                                    variant="brand" 
+                                    label="Move Files" 
+                                    onclick={handleMoveConfirm}
+                                    disabled={moveButtonDisabled}
+                                    class="slds-button_stretch">
+                                </lightning-button>
+                                <template if:true={isDestinationMissing}>
+                                    <div class="slds-notify slds-notify_alert slds-theme_warning slds-m-top_xx-small" role="alert">
+                                        <span class="slds-assistive-text">Warning</span>
+                                        <span class="slds-icon_container slds-icon-utility-warning slds-m-right_xx-small">
+                                            <lightning-icon icon-name="utility:warning" size="x-small" variant="warning"></lightning-icon>
+                                        </span>
+                                        <h2 class="slds-text-body_x-small">Select a destination to continue</h2>
+                                    </div>
+                                </template>
+                            </footer>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Folder Modal -->
+    <template if:true={showCreateFolderModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" 
+                            onclick={closeCreateFolderModal}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-modal__title slds-hyphenate">Create New Folder</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-input
+                        type="text"
+                        label="Folder Name"
+                        value={newFolderName}
+                        onchange={handleFolderNameChange}
+                        placeholder="Enter folder name"
+                        required>
+                    </lightning-input>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Cancel" onclick={closeCreateFolderModal}></lightning-button>
+                    <lightning-button 
+                        variant="brand" 
+                        label="Create Folder" 
+                        onclick={handleCreateFolderConfirm}
+                        disabled={operationInProgress}>
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" onclick={closeCreateFolderModal}></div>
+    </template>
+
+    <!-- Two-Step Modal -->
+    <template if:true={showTwoStepModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" 
+                            onclick={closeTwoStepModal}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-modal__title">Cross-Library File Organization</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-media slds-media_center slds-m-bottom_medium">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="utility:info" size="medium" variant="brand"></lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-body_regular">
+                                To organize files in a folder within another library, we'll complete this in two steps:
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                        <ol class="slds-list_ordered">
+                            <li class="slds-item slds-p-bottom_small">
+                                <strong>Step 1:</strong> Add {selectedFileCount} files to <strong>{twoStepTargetLibraryName}</strong>
+                            </li>
+                            <li class="slds-item">
+                                <strong>Step 2:</strong> Organize files into <strong>{twoStepTargetFolderName}</strong>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <div class="slds-notify slds-notify_alert slds-theme_info" role="alert">
+                        <span class="slds-icon_container slds-icon-utility-info slds-m-right_x-small">
+                            <lightning-icon icon-name="utility:info" size="x-small" variant="inverse"></lightning-icon>
+                        </span>
+                        <h2 class="slds-text-body_small">
+                            <strong>Note:</strong> Files may remain accessible in their original libraries due to Salesforce ownership rules.
+                        </h2>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Cancel" onclick={closeTwoStepModal}></lightning-button>
+                    <lightning-button 
+                        variant="brand" 
+                        label="Start Organization Process" 
+                        onclick={executeTwoStepMove}
+                        disabled={operationInProgress}>
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" onclick={closeTwoStepModal}></div>
+    </template>
+    
+    <!-- Delete Modal -->
+    <template if:true={showDeleteModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" 
+                            onclick={closeDeleteModal}>
+                        <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-modal__title">{deleteModalTitle}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-media slds-media_center slds-m-bottom_medium">
+                        <div class="slds-media__figure">
+                            <lightning-icon icon-name="utility:warning" size="medium" variant="error"></lightning-icon>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-body_regular">{deleteConfirmationText}</p>
+                        </div>
+                    </div>
+                    <div class="slds-notify slds-notify_alert slds-theme_warning" role="alert">
+                        <span class="slds-icon_container slds-icon-utility-warning slds-m-right_x-small">
+                            <lightning-icon icon-name="utility:warning" size="x-small" variant="warning"></lightning-icon>
+                        </span>
+                        <h2 class="slds-text-body_small">
+                            <strong>Warning:</strong> Deleted files will be moved to the Recycle Bin.
+                        </h2>
+                    </div>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Cancel" onclick={closeDeleteModal}></lightning-button>
+                    <lightning-button 
+                        variant="destructive" 
+                        label="Delete Files" 
+                        onclick={handleDeleteConfirm}
+                        disabled={operationInProgress}>
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open" onclick={closeDeleteModal}></div>
+    </template>
+</template>
