@@ -2,6 +2,8 @@
 
 > A powerful Lightning Web Component (LWC) for managing files across Salesforce Libraries with ease.
 
+Connect with me on LinkedIn - [Bill Greenhaw](https://www.linkedin.com/in/billgreenhaw/)
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
