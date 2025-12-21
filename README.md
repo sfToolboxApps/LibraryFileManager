@@ -4,6 +4,8 @@
 
 Connect with me on LinkedIn - [Bill Greenhaw](https://www.linkedin.com/in/billgreenhaw/)
 
+If you use and appreciate this app. If it saves you or your business time...please consider giving to the GoFundMe - https://gofund.me/01d6d2355 . This is helping to cover expenses paid by Bill Greenhaw for Tahoe Dreamin'.
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
@@ -335,5 +337,7 @@ Future enhancements under consideration:
 ---
 
 **Made with ❤️ for the Salesforce community**
+
+If you use and appreciate this app. If it saves you or your business time...please consider giving to the GoFundMe - https://gofund.me/01d6d2355 . This is helping to cover expenses paid by Bill Greenhaw for Tahoe Dreamin'.
 
 *If you find this component useful, please ⭐ star the repository!*
