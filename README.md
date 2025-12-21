@@ -11,7 +11,6 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Architecture](#architecture)
-- [Development](#development)
 - [Testing](#testing)
 - [Contributing](#contributing)
 - [License](#license)
@@ -23,7 +22,7 @@ Salesforce Library File Manager is a custom Lightning Web Component that dramati
 
 **What makes this special?** Salesforce's native file management requires moving files one at a time and **completely blocks** moving files between folders in different libraries. This component eliminates those limitations and makes cross-library folder moves possible with automatic intelligent handling of Salesforce's platform constraints.
 
-🔒 Production Safety: Always install and test in a Sandbox environment first. Never install untested code directly in production.
+> 🔒 **Production Safety**: Always install and test in a Sandbox environment first. Never install untested code directly in production.
 
 ## 🔥 The Problem
 
@@ -44,7 +43,6 @@ This component provides:
 - ✅ **Intelligent automation** - Automatically detects complex scenarios and handles multi-step processes for you
 - ✅ **Visual tree navigation** - See your entire library and folder structure at a glance
 - ✅ **Breadcrumb navigation** - Always know where you are in the hierarchy
-- ✅ **Real-time feedback** - Clear success/error messages for every operation
 
 ## 🚀 Features
 
@@ -70,10 +68,10 @@ This component provides:
 - **Real-time updates** - File lists refresh automatically after operations
 - **Smart error handling** - Clear, actionable error messages
 - **Progress indicators** - Visual feedback during long operations
-- **Responsive design** - Optimized for desktop, tablet, and mobile
 
 ### Technical Features
 
+- **High test coverage** - 76%+ test coverage with 66 comprehensive test methods
 - **Managed package ready** - Prepared for AppExchange distribution
 - **Secure** - Uses Salesforce `with sharing` for proper record-level security
 - **Performant** - Optimized queries and bulk processing
@@ -81,13 +79,57 @@ This component provides:
 
 ## 📦 Installation
 
+> ⚠️ **IMPORTANT: Always test in a Sandbox environment first!** Do not install directly in production. Test thoroughly in a sandbox or developer org before deploying to your production environment.
+
 ### Prerequisites
 
 - Salesforce org with Libraries/Content enabled
 - Administrator or System Administrator profile
 - Users must have Content enabled on their user record
 
-### Option 1: Unmanaged Package (Recommended for Development)
+### Option 1: Managed Package (Recommended for Production Use)
+
+**Best for:** Production orgs, easier upgrades, namespace protection
+
+1. Click the installation link:
+   - **Production/Developer Orgs**: [Install Managed Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfj0000008pYP)
+   - **Sandbox Orgs**: Replace `login.salesforce.com` with `test.salesforce.com` in the URL above
+
+2. Log in to your Salesforce org
+
+3. Choose installation option:
+   - **Install for Admins Only** (recommended initially)
+   - Install for All Users
+   - Install for Specific Profiles
+
+4. Click **Install**
+
+5. Approve Third-Party Access if prompted
+
+6. Wait for installation to complete
+
+### Option 2: Unmanaged Package (Recommended for Customization)
+
+**Best for:** Sandboxes, development orgs, when you need to modify the code
+
+1. Click the installation link:
+   - **Production/Developer Orgs**: [Install Unmanaged Package](https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfj0000008lpl)
+   - **Sandbox Orgs**: Replace `login.salesforce.com` with `test.salesforce.com` in the URL above
+
+2. Log in to your Salesforce org
+
+3. Choose installation option:
+   - **Install for Admins Only** (recommended initially)
+   - Install for All Users
+   - Install for Specific Profiles
+
+4. Click **Install**
+
+5. Wait for installation to complete
+
+### Option 3: Deploy from Source (For Developers)
+
+**Best for:** Contributing to the project, advanced customization
 
 1. Download the repository:
    ```bash
@@ -98,34 +140,6 @@ This component provides:
 2. Deploy to your Salesforce org using SFDX:
    ```bash
    sfdx force:source:deploy -p force-app -u your-org-alias
-   ```
-
-3. Assign permissions:
-   - Navigate to **Setup → Permission Sets**
-   - Create a permission set with access to:
-     - `LibraryFileManagerController` Apex class
-     - `libraryFileManager` Lightning component
-   - Assign the permission set to users who need access
-
-### Option 2: Manual Deployment
-
-1. **Deploy Apex Class**:
-   - Copy contents of `LibraryFileManagerController.cls`
-   - Create new Apex class in your org
-   - Paste and save
-
-2. **Deploy Test Class**:
-   - Copy contents of `LibraryFileManagerControllerTest.cls`
-   - Create new Apex class in your org
-   - Paste and save
-
-3. **Deploy Lightning Web Component**:
-   - Create `libraryFileManager` component folder
-   - Copy `libraryFileManager.html`, `libraryFileManager.js`, `libraryFileManager.css`, and `libraryFileManager.js-meta.xml`
-
-4. **Run Tests**:
-   ```bash
-   sfdx force:apex:test:run -n LibraryFileManagerControllerTest -u your-org-alias
    ```
 
 ### Adding to Lightning Pages
@@ -186,7 +200,7 @@ This happens automatically—you just confirm the operation and the app handles 
 ### Component Structure
 
 ```
-salesforce-library-file-manager/
+LibraryFileManager/
 ├── force-app/
 │   └── main/
 │       └── default/
@@ -248,6 +262,13 @@ Contributions are welcome! Here's how you can help:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Development Guidelines
+
+- **Code Style**: Follow Salesforce Apex and JavaScript best practices
+- **Testing**: Maintain or improve test coverage (aim for 75%+)
+- **Documentation**: Update README for any user-facing changes
+- **Commits**: Use clear, descriptive commit messages
+
 ### Areas for Contribution
 
 - 🐛 Bug fixes
@@ -280,7 +301,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ### Known Limitations
 
 1. **ContentFolderMember Timing**: Background processes may cause slight delays in folder organization
-2. **Large Bulk Operations**: Operations with 1000+ files may take time.
+2. **Large Bulk Operations**: Operations with 1000+ files may take time
 3. **Mobile Navigation**: Folder tree less optimal on very small screens (phone portrait mode)
 
 ### Reporting Issues
@@ -297,7 +318,6 @@ When reporting issues, please include:
 
 - Built with [Salesforce Lightning Design System](https://www.lightningdesignsystem.com/)
 - Inspired by the need to simplify Salesforce file management
-- Thanks to the Salesforce developer community for insights and best practices
 
 ## 🗺 Roadmap
 
