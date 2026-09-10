@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <lwcComponent>libraryFileManager</lwcComponent>
+    <label>Library File Manager</label>
+    <motif>Custom58: Files</motif>
+    <description>Manage Salesforce Libraries and Files</description>
+</CustomTab>

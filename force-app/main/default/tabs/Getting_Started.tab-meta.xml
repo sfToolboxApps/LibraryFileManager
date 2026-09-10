@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <lwcComponent>gettingStarted</lwcComponent>
+    <label>Getting Started</label>
+    <motif>Custom58: Files</motif>
+    <description
+  >Landing page introducing the Library File Manager app</description>
+</CustomTab>

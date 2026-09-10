@@ -1,0 +1,471 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-page-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1.5rem 1.5rem 2rem;
+}
+
+.app-content-row {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.app-page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+/* Same branded-callout weight as the Getting Started page's blue card, but
+   compact and flex-shrink:0 - it sits below the fixed-height panel row, so
+   it must stay a fixed, predictable size or it eats into that row's budget
+   and risks reintroducing outer page scroll. */
+.give-back-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #f3f9fd;
+  border: 1px solid #0176d3;
+  border-radius: 0.25rem;
+  padding: 1rem 1.5rem;
+  margin-top: 1rem;
+  flex-shrink: 0;
+}
+
+.give-back-banner-icon {
+  flex-shrink: 0;
+}
+
+.give-back-banner-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.give-back-banner-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #014486;
+  margin: 0 0 0.25rem 0;
+}
+
+.give-back-banner-text {
+  font-size: 0.875rem;
+  color: #080707;
+  margin: 0;
+}
+
+.give-back-banner-button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Quiet, small-text footer for a page that's used repeatedly, not read once -
+   reachable but never competing with the file table or action buttons above. */
+.app-page-footer {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #dddbda;
+  font-size: 0.75rem;
+  color: #706e6b;
+  text-align: center;
+}
+
+.app-page-footer-link {
+  font-size: 0.75rem;
+}
+
+.app-page-footer-divider {
+  margin: 0 0.5rem;
+  color: #dddbda;
+}
+
+.app-page-header-icon {
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.app-page-header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #080707;
+  margin: 0 0 0.25rem 0;
+}
+
+.app-page-subtitle {
+  font-size: 0.875rem;
+  color: #514f4d;
+  margin: 0;
+}
+
+/* Single explicit source of truth for border/radius/shadow, shared by every
+   panel card (tree, file list, move) instead of relying on slds-card_boundary
+   defaults that were never actually audited for consistency. overflow:hidden
+   clips each header's square corners to the card's rounded corners. */
+/* Every panel card now fills the fixed-height row (via height:100%, resolved
+   against app-content-row's real height) and is a flex column itself, so its
+   header/footer stay pinned and only its designated scroll region grows to
+   fill and scroll within whatever space is actually left. */
+.panel-card {
+  border: 1px solid #dddbda;
+  border-radius: 0.25rem;
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.07),
+    0 2px 6px 0 rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-card > .slds-card__header {
+  flex-shrink: 0;
+}
+
+.panel-card > .slds-card__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-card > .slds-card__footer {
+  flex-shrink: 0;
+}
+
+.current-location-branded {
+  background: #0176d3 !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  min-height: 4.5rem !important;
+  box-sizing: border-box !important;
+}
+
+.current-location-title {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  margin: 0 !important;
+}
+
+.current-location-subtitle {
+  color: rgba(255, 255, 255, 0.9) !important;
+  margin: 0.125rem 0 0 0 !important;
+}
+
+.current-location-branded lightning-icon {
+  --slds-c-icon-color-foreground-default: #ffffff !important;
+}
+
+.file-search-col {
+  max-width: 20rem;
+  align-self: center;
+}
+
+/* Create Folder / Move Files / Delete Files are plain native <button> elements
+   (not lightning-button) specifically so their disabled state is a real DOM button
+   with no shadow root - :disabled + plain CSS properties always applies, no
+   styling hooks, no per-variant guessing, no shadow-DOM boundary to fight. */
+.action-button-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* The button row's own wrapper and the conditional "N files selected" banner
+   sit above file-table-container in the same flex column - they must keep
+   their natural size, not get squeezed as the container fills the fixed
+   row height. */
+.panel-card > .slds-card__body > .slds-grid,
+.panel-card > .slds-card__body > .slds-notify {
+  flex-shrink: 0;
+}
+
+.action-button:disabled {
+  background-color: #dddbda !important;
+  border-color: #dddbda !important;
+  color: #514f4d !important;
+  cursor: default;
+}
+
+.action-button:disabled lightning-icon {
+  --slds-c-icon-color-foreground-default: #514f4d !important;
+}
+
+.library-header-icon {
+  display: inline-flex !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  flex-shrink: 0 !important;
+}
+
+.tree-panel-header {
+  align-items: center;
+  background: #0176d3 !important;
+  padding: 0.75rem 1rem !important;
+  min-height: 4.5rem !important;
+  box-sizing: border-box !important;
+}
+
+.tree-panel-header-title {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+}
+
+.tree-panel-header-actions {
+  align-items: center;
+}
+
+.tree-panel-header lightning-icon {
+  --slds-c-icon-color-foreground-default: #ffffff !important;
+}
+
+.tree-panel-header-button {
+  --slds-c-button-text-color: #ffffff !important;
+  --slds-c-button-text-color-hover: #ffffff !important;
+  --slds-c-button-text-color-focus: #ffffff !important;
+  --slds-c-button-text-color-active: #ffffff !important;
+}
+
+/* Matches .move-panel-close's plain white-icon-on-blue treatment, replacing
+   the previous border-filled variant's inverted white-circle badge so both
+   header icon languages stay consistent. */
+.tree-panel-header-refresh {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.tree-panel-header-refresh:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.tree-panel-header-refresh lightning-primitive-icon {
+  fill: #ffffff !important;
+}
+
+/* lightning-tree's own base-component styling otherwise renders a second,
+   independent bordered box nested inside this panel's card border. */
+.slds-tree_container {
+  border: none !important;
+  padding: 0 !important;
+}
+
+.move-panel-header {
+  background: #0176d3 !important;
+  color: #ffffff !important;
+  padding: 0.75rem 1rem !important;
+  min-height: 4.5rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.move-panel-header > .slds-grid {
+  width: 100%;
+}
+
+.move-panel-title {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.move-panel-header lightning-icon {
+  --slds-c-icon-color-foreground-default: #ffffff !important;
+}
+
+.move-panel-close {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+}
+
+.move-panel-close:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.move-panel-close lightning-primitive-icon {
+  fill: #ffffff !important;
+}
+
+.library-tree-container {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.file-table-container {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: block;
+}
+
+/* "Files to move" list: auto-size to the selected files, up to a reasonable cap,
+   instead of a small fixed height that forces a scrollbar for just 2-3 items. */
+.files-to-move-list.slds-box.slds-theme_shade {
+  height: auto;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+/* Collapsed by default: the count/size stays visible in this header at all
+   times (the whole point of collapsing), only the file-by-file list itself
+   is hidden until expanded, freeing that space for Choose destination. */
+.files-to-move-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0.375rem 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.files-to-move-toggle-icon {
+  flex-shrink: 0;
+}
+
+.files-to-move-toggle-label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #080707;
+}
+
+.files-to-move-row {
+  padding: 0.25rem 0;
+}
+
+/* Flex items default to min-width:auto, which silently defeats
+   text-overflow:ellipsis by letting the item grow to fit its content
+   instead of shrinking - min-width:0 is what actually lets truncation
+   kick in inside a flex row. */
+.files-to-move-row-body {
+  min-width: 0;
+}
+
+.files-to-move-filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.move-panel-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Every one of these SLDS utility classes (slds-p-around_small on
+   slds-card__body and slds-card__footer, slds-section's own default
+   margin, slds-section__content's own padding) contributes its own bottom
+   or top spacing, and they all stack between the destination list and the
+   Move Files button. Rather than guess which one(s) - can't read SLDS's
+   actual compiled values without a live browser - zero out every single
+   one explicitly so nothing is left to stack. */
+.move-panel-container > .slds-card__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 0 !important;
+}
+
+.move-panel-container .slds-section.slds-is-open {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 0 !important;
+}
+
+.move-panel-container .slds-section__content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.destination-tree-container {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 8rem;
+  overflow-y: auto;
+  overflow-x: auto;
+  margin-bottom: 0 !important;
+}
+
+.move-panel-container > .slds-card__footer {
+  padding-top: 0.5rem !important;
+  margin-top: 0 !important;
+}
+
+.move-panel-column.slide-in {
+  max-width: 24rem;
+  min-width: 22rem;
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease;
+}
+
+.move-panel-column.slide-out {
+  max-width: 0;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(100%);
+  pointer-events: none;
+}
+
+.slds-notify.slds-theme_warning {
+  background: #fef7e6 !important;
+  border: 1px solid #fe9339 !important;
+  color: #181818 !important;
+}
+
+.slds-notify.slds-theme_warning .slds-text-body_x-small {
+  color: #181818 !important;
+}
+
+@media (max-width: 767px) {
+  .move-panel-container {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+  }
+
+  .move-panel-column.slide-in {
+    max-width: 100% !important;
+    min-width: 100% !important;
+  }
+}

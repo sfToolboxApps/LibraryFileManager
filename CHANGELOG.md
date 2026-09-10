@@ -1,0 +1,63 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [Unreleased]
+
+### Added
+
+- `libraryFileManager` LWC: Explorer-style library/folder tree with a file table, supporting true cross-library file and folder moves in a single action.
+- `gettingStarted` LWC and `Getting_Started` tab, set as the app's default landing tab.
+- `LibraryFileManagerController.cls` — Apex controller for listing libraries/folders, browsing files, moving files (including cross-library moves), creating folders, and deleting files.
+- 71 Apex test methods, 100% passing in a clean full run, 81% coverage of the controller (652/807 lines). Split into 5 focused classes — see "Changed" below.
+- `LibraryFileManager` custom application, permission set, and FlexiPages.
+- Expand All / Collapse All controls for the library tree.
+- Live, correctly-pluralized file counts on libraries and folders in the tree.
+- Owner column in the file table.
+- Folder rows shown inline in the file table (folder icon, click-to-navigate), matching the tree.
+- Guard against creating a folder with no library/folder context selected (both a disabled Create Folder button and a server-side `AuraHandledException` guard clause).
+- Project documentation: README, LICENSE, CONTRIBUTING, INSTALLATION, QUICK_START, this CHANGELOG.
+
+### Security
+
+- Removed the `isTestRootFolder` client-callable test bypass from `getFilesInFolder`'s public `@AuraEnabled` signature. It skipped library validation and was reachable from any LWC; the test-only path now lives behind a separate `@TestVisible` method that isn't exposed to clients at all.
+- `moveFilesToFolder` now rejects the request outright if the destination folder doesn't actually belong to the destination library, instead of silently updating `ContentDocument.ParentId` and `ContentFolderMember.ParentContentFolderId` to disagree with each other.
+- Added `WITH USER_MODE` to the controller's read SOQL queries so they respect the running user's object/field-level access, not just sharing rules (the class was already `with sharing`). DML statements got the same treatment shortly after — see below.
+- The `LibraryFileManager` permission set previously granted only app/tab visibility and no object permissions at all. Added explicit object permissions for `ContentWorkspace`, `ContentFolder`, `ContentFolderMember`, `ContentDocument`, `ContentVersion`, and `ContentDocumentLink`, scoped to what each operation actually needs (e.g. no delete on `ContentWorkspace`, no delete on `ContentVersion`).
+- Verified the above with a real restricted-user Apex test (`Minimum Access - Salesforce` profile, only the `LibraryFileManager` permission set assigned) rather than assuming it — this caught that library visibility is governed by `ContentWorkspaceMember` (Library membership), which is separate from object permissions and can't be granted by a permission set at all. Documented as a required, previously-undocumented installation step in INSTALLATION.md.
+- Added `as user` / `AccessLevel.USER_MODE` to all 6 DML statements in the controller (previously read-only queries had `WITH USER_MODE`, but writes still ran in full system mode). Verified with 5 more restricted-user Apex tests covering create-folder, delete-files (both an allowed and a correctly-rejected case), move-within-library, and cross-library move. This surfaced two more real gaps, both now fixed or documented:
+  - `moveFilesToFolder`'s `ContentFolderMember` query selected `ChildRecordId` even though nothing read it; under `WITH USER_MODE` that field isn't editable, so the later `Database.update` failed on every row with "fields being inaccessible" even though only `ParentContentFolderId` was actually being changed. Fixed by dropping the unused field from the query.
+  - None of this org's three default library permission levels (`Viewer`, `Author`, `Library Administrator`) have `PermissionsDeleteContent` or `PermissionsOrganizeFileAndFolder` checked — so deleting files and creating/moving folders both require a library permission level with those boxes checked, which is Library-specific configuration no permission set can grant. Documented in INSTALLATION.md alongside the library-membership requirement.
+- Added `docs/security.md` (the full three-layer access model — permission set, library membership, library permission level — plus the verification method and a gotcha about `WITH USER_MODE` validating FLS on every selected field, not just the ones being written) and `SECURITY.md` (private vulnerability reporting).
+- Added `docs/architecture.md` — class/component responsibilities, the `smartMoveFiles` routing decision tree, and the reasoning behind the LWC's eager-load-everything / never-touch-expand-state-on-click tree design (the durable lesson from the multi-round tree-collapse bug fixed earlier).
+- Added ApexDoc comments (`@description`/`@param`/`@return`/`@throws`) to the controller's class header, all 9 `@AuraEnabled` public entry points, and the 6 public wrapper classes — the actual client-facing API surface. Left private helpers undocumented where their names/signatures are already self-explanatory, to avoid comment bloat that could drift out of sync with the code.
+
+### Changed
+
+- `getLibrariesWithFolders()` and `getFoldersForLibrary()` independently rebuilt the same folder-hierarchy-with-file-counts logic; consolidated into a single `loadFolderHierarchyWithCounts()` helper both now call, so a future fix to that logic can't apply to only one of them.
+- The folder-tree eager-build depth cap (5) and the folder-to-root safety-valve cap (10) were both unexplained magic numbers that looked like an inconsistency. They're actually different concerns — one's a UI/performance limit, the other's a defensive circuit breaker against a runaway walk — so instead of forcing them to match, named them (`FOLDER_TREE_BUILD_MAX_DEPTH`, `FOLDER_PATH_SAFETY_LIMIT`) with comments explaining why they're deliberately different.
+- Removed the entire unreachable "two-step move modal" code path from `libraryFileManager`: `OperationResult.requiresTwoStep`/`targetLibraryId`/`targetLibraryName`/`targetFolderId`/`targetFolderName` were declared but never set by any controller method, so the LWC branch that used them could never fire. Deleted the dead Apex fields, the dead LWC modal markup, its two handler methods, five unused tracked fields, two now-unused Apex imports, and a now-unused toast helper.
+- Split the single ~1900-line `LibraryFileManagerControllerTest.cls` (71 test methods) into 5 focused classes, since it had grown too large to navigate: `LibraryFileManagerTestHelper` (shared setup — `createTestLibraries`, `createTestFiles`, `createRestrictedUser`, `grantLibraryMembership`, `grantCustomLibraryMembership`), `LibraryFileManagerLibrariesTest` (library/folder listing), `LibraryFileManagerFilesTest` (file browsing, icons, sizes), `LibraryFileManagerMoveTest` (all move/smart-move variants — the largest group), and `LibraryFileManagerFolderAndDeleteTest` (create folder, delete files). Every test method moved verbatim with only the shared-helper call sites re-qualified; none were rewritten, reordered within their group, or dropped (verified programmatically that all 71 were accounted for exactly once before the split).
+
+### Fixed
+
+- **Moving a file from a subfolder to its own library's root silently failed** — reported success but never actually moved the file. `moveFilesToLibrary` only ever updated `ContentDocument.ParentId` and `ContentDocumentLink`; it never touched `ContentFolderMember`. This was invisible for genuinely cross-library moves because re-parenting a file to a _different_ library makes Salesforce auto-create the folder membership there as an undocumented side effect — but that side effect never fires when the target library is already the current one, since `ParentId` doesn't actually change. Fixed by having `moveFilesToLibrary` explicitly relocate the file's `ContentFolderMember` to the target library's root folder. Verified directly against a real affected file in the org (confirmed the stale folder membership, ran the fix, confirmed it now points at the correct root folder), and confirmed again the next day by a clean automated run of the permanent regression test, `testMoveFilesToLibrary_FromSubfolderToSameLibraryRoot`.
+- `getFilesInLibraryRoot` was returning every file linked to a library via `ContentDocumentLink` regardless of which folder it was actually in; it's now folder-scoped like `getFilesInContentFolder`.
+- Library tree collapsing/losing selection on unrelated state changes (file selection, navigation, moves) — caused by binding `lightning-tree`'s `items` to a getter that rebuilt a new array/object reference on every render, defeating the tree's reference-based internal state tracking. Fixed by building the tree's data explicitly only at the points where the underlying library data actually changes.
+- "1 files" pluralization in tree labels, the header subtitle, and the two-step move modal.
+- Header subtitle count mislabeling a folder containing only subfolders as "N files" instead of "N folders".
+- Inconsistent header subtitle path (missing at some depths, redundantly repeating the current name at the library root) — now always derived from the same server-computed breadcrumbs.
+- Redundant stacked headers ("Library File Manager" shown three times before any real content) condensed to the necessary, non-duplicate ones.
+- Duplicate "Libraries" label rendered both by the tree panel's own card header and by `lightning-tree`'s internal `header` prop.
+- Disabled-state visual inconsistency across Create Folder / Move Files / Delete Files: these are now plain native `<button>` elements (not `lightning-button`) specifically so their disabled styling is governed by a plain `:disabled` CSS rule with no shadow DOM or undocumented styling hooks to fight.
+- Empty-state scrollbar in the file table caused by the file datatable rendering (with zero rows) at the same time as the "No files found" illustration.
+- "Files to move" list in the Move panel auto-sizes to the selected files instead of clipping to ~1 visible row.
+- Move panel's destination picker now fills the panel's available height instead of being capped at a small fixed height.
+- `testGetFilesInFolder_InFolder` previously never moved files into the folder it was testing, so `getFilesInContentFolder`'s file-query/wrapper-building logic went untested; it now actually moves files in and asserts exact contents of both the folder and the library root. Removed two unused private helpers (`getFolderName`, `getFileNames`) with no callers.
+
+### Known limitations
+
+- Real-time visual verification of CSS/layout changes was done via retrieve-and-diff against the deployed org and Jest DOM assertions, not a browser screenshot tool, for most of this project's history.
+- `master` was verified post-merge with a deploy to an existing, already-configured org (`library-manager`) rather than a genuinely fresh scratch org, since no Dev Hub was authenticated in the environment at merge time. In place of that, verification relied on: a clean 16/16-component deploy with 0 errors, all 71 Apex tests passing (100%) including restricted-user tests that assign only the `LibraryFileManager` permission set and Library membership to a `Minimum Access - Salesforce` profile user, simulating the access a genuinely fresh install would grant, and a full metadata cross-reference check (app references both tabs, both tabs reference their LWC, permission set grants the objects the controller needs). A true zero-state install, including the CRM Content org-setting prerequisite documented in INSTALLATION.md, has not been exercised end-to-end on a fresh org.
