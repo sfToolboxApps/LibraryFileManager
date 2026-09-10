@@ -1,0 +1,168 @@
+<template>
+  <div class="page-container">
+    <div class="page-header">
+      <div class="page-header-inner">
+        <img src={moveIconUrl} alt="" class="page-header-icon" />
+        <div class="page-header-text">
+          <h1 class="page-title">Library File Manager</h1>
+          <p class="page-subtitle">
+            True cross-library file and folder moves, not a workaround
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-card feature-card">
+      <div class="feature-card-icon">
+        <lightning-icon
+          icon-name="utility:move"
+          size="large"
+          variant="brand"
+        ></lightning-icon>
+      </div>
+      <div class="feature-card-body">
+        <h2 class="slds-text-heading_small feature-card-title">
+          Select as many files as you need and move them all in one go
+        </h2>
+        <p class="slds-text-body_regular">
+          Salesforce's native Files UI only lets you move one file at a time,
+          and it
+          <strong
+            >blocks moving files into a folder that belongs to a different
+            library entirely</strong
+          >. You're stuck sharing or copying instead of actually moving. Library
+          File Manager removes that limitation entirely.
+        </p>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div class="content-card">
+        <h2 class="slds-text-heading_small content-card-title">
+          <lightning-icon
+            icon-name="utility:info"
+            size="x-small"
+            variant="brand"
+            class="slds-m-right_x-small content-card-title-icon"
+          ></lightning-icon>
+          What this app does
+        </h2>
+        <ul class="slds-list_dotted">
+          <li>
+            Bulk move files across libraries and into any folder, in one step
+          </li>
+          <li>
+            Browse every library and its folder hierarchy in an Explorer-style
+            tree and table
+          </li>
+          <li>Create folders and organize files without leaving the app</li>
+          <li>Bulk delete files you no longer need</li>
+        </ul>
+      </div>
+
+      <div class="content-card">
+        <h2 class="slds-text-heading_small content-card-title">
+          <lightning-icon
+            icon-name="utility:list"
+            size="x-small"
+            variant="brand"
+            class="slds-m-right_x-small content-card-title-icon"
+          ></lightning-icon>
+          Getting Started
+        </h2>
+        <ol class="slds-list_ordered">
+          <li>Open the <strong>Library File Manager</strong> tab</li>
+          <li>Select a library from the tree on the left</li>
+          <li>
+            Select one or more files using the checkboxes in the file table
+          </li>
+          <li>
+            Click <strong>Move Files</strong> to relocate them, or
+            <strong>Delete Files</strong> to remove them
+          </li>
+        </ol>
+      </div>
+
+      <div class="content-card cta-card">
+        <h2 class="slds-text-heading_small content-card-title">
+          <lightning-icon
+            icon-name="utility:forward"
+            size="x-small"
+            variant="brand"
+            class="slds-m-right_x-small content-card-title-icon"
+          ></lightning-icon>
+          Ready to go?
+        </h2>
+        <p class="slds-text-body_regular slds-m-bottom_medium">
+          Jump straight into the app and start organizing your files.
+        </p>
+        <lightning-button
+          variant="brand"
+          label="Open Library File Manager"
+          icon-name="utility:forward"
+          onclick={handleOpenLibraryManager}
+          class="cta-button"
+        >
+        </lightning-button>
+
+        <div class="resource-links">
+          <a
+            href={githubReadmeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="slds-text-link resource-link"
+          >
+            <lightning-icon
+              icon-name="utility:file"
+              size="x-small"
+              class="slds-m-right_xx-small"
+            ></lightning-icon>
+            Full documentation (GitHub README)
+          </a>
+          <a
+            href={githubIssuesUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="slds-text-link resource-link"
+          >
+            <lightning-icon
+              icon-name="utility:bug"
+              size="x-small"
+              class="slds-m-right_xx-small"
+            ></lightning-icon>
+            Report a problem (GitHub Issues)
+          </a>
+        </div>
+      </div>
+
+      <div class="content-card give-back-card">
+        <h2 class="slds-text-heading_small content-card-title">
+          <lightning-icon
+            icon-name="utility:heart"
+            size="x-small"
+            variant="brand"
+            class="slds-m-right_x-small content-card-title-icon"
+          ></lightning-icon>
+          Give Back to the Trailblazer Community
+        </h2>
+        <p class="slds-text-body_regular slds-m-bottom_x-small">
+          Enjoying this free tool? Give back by attending, donating, or
+          sponsoring Biggest Little Dreamin', a Salesforce community conference
+          in Reno, NV (Jan 28-29, 2027).
+        </p>
+        <p class="slds-text-body_regular slds-m-bottom_medium">
+          Can't make it? A personal donation, or getting your company to donate
+          if your team's using this tool, helps the community a ton.
+        </p>
+        <a
+          href={giveBackUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="slds-button slds-button_neutral give-back-link"
+        >
+          Support Biggest Little Dreamin' →
+        </a>
+      </div>
+    </div>
+  </div>
+</template>

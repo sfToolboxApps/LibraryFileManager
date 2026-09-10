@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <footerColor>#0176D3</footerColor>
+        <headerColor>#0176D3</headerColor>
+        <logo>moveIcon</logo>
+        <logoVersion>1</logoVersion>
+        <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
+    </brand>
+    <defaultLandingTab>Getting_Started</defaultLandingTab>
+    <description>App for managing Salesforce Libraries and Files</description>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
+    <label>Library File Manager</label>
+    <navType>Standard</navType>
+    <tabs>Getting_Started</tabs>
+    <tabs>LibraryFileManager</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>
