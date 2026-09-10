@@ -1,8 +1,8 @@
 {
   "packageDirectories": [
     {
-      "versionName": "ver 0.1",
-      "versionNumber": "0.1.0.NEXT",
+      "versionName": "ver 0.1.1",
+      "versionNumber": "0.1.1.NEXT",
       "path": "force-app",
       "default": true,
       "package": "Library File Manager",
@@ -16,6 +16,7 @@
   "packageAliases": {
     "Library File Manager": "0Hofj0000004HqHCAU",
     "Library File Manager@0.1.0-1": "04tfj000000X2z7AAC",
-    "Library File Manager@0.1.0-2": "04tfj000000X37BAAS"
+    "Library File Manager@0.1.0-2": "04tfj000000X37BAAS",
+    "Library File Manager@0.1.1-1": "04tfj000000X3NJAA0"
   }
 }

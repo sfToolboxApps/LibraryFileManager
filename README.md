@@ -83,11 +83,13 @@ sf org login web --alias your-org-alias
 sf project deploy start --source-dir force-app --target-org your-org-alias
 ```
 
-### Option 2: Deploy as an unmanaged package
+### Option 2: Install the packaged version
 
-Retrieve the source and deploy it into your org as an unmanaged package using the same `sf project deploy start` command above, targeting your org.
+Click the install link, log in, and choose Install for Admins Only, Install for All Users, or Install for Specific Profiles.
 
-After deploying, assign the **Library File Manager** permission set to any user who needs access, **and** add them as a member of each Library they need to work with (Library membership is separate from the permission set — Salesforce Libraries are only visible to their explicit members) — see [INSTALLATION.md](INSTALLATION.md) for the full step-by-step, including this and a permission-set gotcha that will silently hide the app's tabs if missed.
+https://login.salesforce.com/packaging/installPackage.apexp?p0=04tfj000000X3NJAA0
+
+This is an Unlocked (2GP) package with no namespace. The `LibraryFileManager` permission set is included in the package itself, but _assigning_ it to specific users is still a separate manual step after install, same as Option 1 — permission set assignment is org-specific data, not metadata, so it can never be part of any package. You'll also still need to add each user as a member of the Libraries they need to work with (Library membership is separate from the permission set — Salesforce Libraries are only visible to their explicit members) — see [INSTALLATION.md](INSTALLATION.md) for the full step-by-step, including this and a permission-set gotcha that will silently hide the app's tabs if missed.
 
 ## 💡 Usage
 
