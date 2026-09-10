@@ -1,12 +1,21 @@
 {
   "packageDirectories": [
     {
+      "versionName": "ver 0.1",
+      "versionNumber": "0.1.0.NEXT",
       "path": "force-app",
-      "default": true
+      "default": true,
+      "package": "Library File Manager",
+      "versionDescription": ""
     }
   ],
   "name": "FilesMovement",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
-  "sourceApiVersion": "64.0"
+  "sourceApiVersion": "64.0",
+  "packageAliases": {
+    "Library File Manager": "0Hofj0000004HqHCAU",
+    "Library File Manager@0.1.0-1": "04tfj000000X2z7AAC",
+    "Library File Manager@0.1.0-2": "04tfj000000X37BAAS"
+  }
 }

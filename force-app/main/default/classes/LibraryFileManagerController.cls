@@ -535,9 +535,21 @@ public with sharing class LibraryFileManagerController {
           WHERE ChildRecordId IN :fileIds
           WITH USER_MODE
         ];
+        // A file can carry ContentFolderMember rows that have nothing to do
+        // with the library being operated on - most commonly a private,
+        // unfiled membership Salesforce creates when a file is first
+        // uploaded directly to a record (before it's ever filed into a
+        // Library), which is never cleaned up once the file is later filed
+        // into a Library. Blindly reparenting every row for the file trips
+        // Salesforce's own "different root" validation on any such row, so
+        // only relocate the row that actually resolves to targetLibraryId.
         List<ContentFolderMember> membersToUpdate = new List<ContentFolderMember>();
         for (ContentFolderMember member : membersToRelocate) {
-          if (member.ParentContentFolderId != targetRootFolderId) {
+          if (
+            member.ParentContentFolderId != targetRootFolderId &&
+            findLibraryForFolder(member.ParentContentFolderId) ==
+            targetLibraryId
+          ) {
             member.ParentContentFolderId = targetRootFolderId;
             membersToUpdate.add(member);
           }
@@ -635,12 +647,29 @@ public with sharing class LibraryFileManagerController {
       // editable under WITH USER_MODE, and including it here (even though
       // its value is never changed) makes the later Database.update fail
       // with "fields being inaccessible" for every row.
-      List<ContentFolderMember> existingMembers = [
+      List<ContentFolderMember> candidateMembers = [
         SELECT Id, ParentContentFolderId
         FROM ContentFolderMember
         WHERE ChildRecordId IN :fileIds
         WITH USER_MODE
       ];
+
+      // A file can carry ContentFolderMember rows that have nothing to do
+      // with targetLibraryId - most commonly a private, unfiled membership
+      // Salesforce creates when a file is first uploaded directly to a
+      // record (before it's ever filed into a Library), which is never
+      // cleaned up once the file is later filed into a Library. Reparenting
+      // such a row into targetFolderId trips Salesforce's own "different
+      // root" validation, so only touch the row that actually belongs to
+      // targetLibraryId; every other row is left untouched.
+      List<ContentFolderMember> existingMembers = new List<ContentFolderMember>();
+      for (ContentFolderMember member : candidateMembers) {
+        if (
+          findLibraryForFolder(member.ParentContentFolderId) == targetLibraryId
+        ) {
+          existingMembers.add(member);
+        }
+      }
 
       if (!existingMembers.isEmpty()) {
         for (ContentFolderMember member : existingMembers) {

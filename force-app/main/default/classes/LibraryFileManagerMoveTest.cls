@@ -81,6 +81,142 @@ private class LibraryFileManagerMoveTest {
     }
   }
 
+  // Reproduces a real shape found in a customer org: a file can carry a
+  // ContentFolderMember row pointing at a folder with no ContentWorkspace at
+  // all - e.g. a private/unfiled membership Salesforce creates when a file
+  // is first uploaded directly to a record, before ever being filed into a
+  // Library, which is never cleaned up once the file is later filed into a
+  // real Library. A same-library folder move must skip that row rather than
+  // blindly reparenting it and tripping Salesforce's "different root"
+  // validation.
+  @isTest
+  static void testMoveFilesToFolder_SkipsOrphanFolderMembership() {
+    Map<String, Object> data = LibraryFileManagerTestHelper.createTestLibraries();
+    ContentWorkspace lib = (ContentWorkspace) data.get('library');
+    ContentFolder folder = (ContentFolder) data.get('subFolder');
+
+    if (folder != null) {
+      List<String> fileIds = LibraryFileManagerTestHelper.createTestFiles(
+        lib.Id
+      );
+      String fileId = fileIds[0];
+
+      ContentFolder orphanRoot;
+      User currentUser = [SELECT Id FROM User WHERE Id = :UserInfo.getUserId()];
+      System.runAs(currentUser) {
+        orphanRoot = new ContentFolder(
+          Name = 'OrphanRoot' + System.currentTimeMillis()
+        );
+        insert orphanRoot;
+      }
+      insert new ContentFolderMember(
+        ParentContentFolderId = orphanRoot.Id,
+        ChildRecordId = fileId
+      );
+
+      Test.startTest();
+      LibraryFileManagerController.OperationResult result = LibraryFileManagerController.moveFilesToFolder(
+        fileIds,
+        folder.Id,
+        lib.Id
+      );
+      Test.stopTest();
+
+      System.assert(
+        result.success,
+        'Move should succeed even when the file carries an unrelated orphan folder membership: ' +
+        result.errors
+      );
+      System.assert(
+        result.errors.isEmpty(),
+        'Should not surface a cross-root error for the orphan row: ' +
+        result.errors
+      );
+
+      List<ContentFolderMember> membersAfter = [
+        SELECT ParentContentFolderId
+        FROM ContentFolderMember
+        WHERE ChildRecordId = :fileId
+      ];
+      Set<Id> parentsAfter = new Set<Id>();
+      for (ContentFolderMember member : membersAfter) {
+        parentsAfter.add(member.ParentContentFolderId);
+      }
+
+      System.assertEquals(
+        2,
+        membersAfter.size(),
+        'Both the real and orphan rows should still exist'
+      );
+      System.assert(
+        parentsAfter.contains(orphanRoot.Id),
+        'Orphan row must be left untouched, not reparented into the library'
+      );
+      System.assert(
+        parentsAfter.contains(folder.Id),
+        'Real library row must have moved to the destination folder'
+      );
+    }
+  }
+
+  // Same hazard as above, exercised through moveFilesToLibrary's root-
+  // relocation step (the other place that reparents ContentFolderMember
+  // rows without originally scoping to the target library).
+  @isTest
+  static void testMoveFilesToLibrary_SkipsOrphanFolderMembership() {
+    Map<String, Object> data = LibraryFileManagerTestHelper.createTestLibraries();
+    ContentWorkspace lib = (ContentWorkspace) data.get('library');
+
+    List<String> fileIds = LibraryFileManagerTestHelper.createTestFiles(lib.Id);
+    String fileId = fileIds[0];
+
+    ContentFolder orphanRoot;
+    User currentUser = [SELECT Id FROM User WHERE Id = :UserInfo.getUserId()];
+    System.runAs(currentUser) {
+      orphanRoot = new ContentFolder(
+        Name = 'OrphanRoot' + System.currentTimeMillis()
+      );
+      insert orphanRoot;
+    }
+    insert new ContentFolderMember(
+      ParentContentFolderId = orphanRoot.Id,
+      ChildRecordId = fileId
+    );
+
+    Test.startTest();
+    LibraryFileManagerController.OperationResult result = LibraryFileManagerController.moveFilesToLibrary(
+      fileIds,
+      lib.Id
+    );
+    Test.stopTest();
+
+    System.assert(
+      result.success,
+      'Move should succeed even when the file carries an unrelated orphan folder membership: ' +
+      result.errors
+    );
+    System.assert(
+      result.errors.isEmpty(),
+      'Should not surface a cross-root error for the orphan row: ' +
+      result.errors
+    );
+
+    List<ContentFolderMember> membersAfter = [
+      SELECT ParentContentFolderId
+      FROM ContentFolderMember
+      WHERE ChildRecordId = :fileId
+    ];
+    Set<Id> parentsAfter = new Set<Id>();
+    for (ContentFolderMember member : membersAfter) {
+      parentsAfter.add(member.ParentContentFolderId);
+    }
+
+    System.assert(
+      parentsAfter.contains(orphanRoot.Id),
+      'Orphan row must be left untouched, not reparented into the library'
+    );
+  }
+
   @isTest
   static void testSmartMoveFiles_ToLibrary() {
     Map<String, Object> data = LibraryFileManagerTestHelper.createTestLibraries();
